@@ -120,13 +120,14 @@ export async function run() {
       core.debug("Installed dependencies successfully");
     }
 
+    const sshId = "tmate_rsa";
     if (process.platform === "win32") {
       tmateExecutable = 'CHERE_INVOKING=1 tmate'
     } else {
       core.debug("Generating SSH keys")
       fs.mkdirSync(path.join(os.homedir(), ".ssh"), { recursive: true })
       try {
-        await execShellCommand(`echo -e 'y\n'|ssh-keygen -q -t rsa -N "" -f ~/.ssh/id_rsa`);
+        await execShellCommand(`echo -e 'y\n'|ssh-keygen -q -t rsa -N "" -f ~/.ssh/${sshId}`);
       } catch { }
       core.debug("Generated SSH-Key successfully")
     }
@@ -180,6 +181,9 @@ export async function run() {
         setDefaultCommand = `${setDefaultCommand} set-option -g ${key} "${value}" \\;`;
       }
     }
+	  
+	// Set custom tmate identity file
+	setDefaultCommand = `${setDefaultCommand} set-option -g tmate-identity "${sshId}" \\;`
 
     core.debug("Creating new session")
     await execShellCommand(`${tmate} ${newSessionExtra} ${setDefaultCommand} new-session -d`);
